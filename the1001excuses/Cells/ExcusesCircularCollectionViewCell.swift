@@ -8,9 +8,20 @@
 
 import UIKit
 
+@objc protocol CollectionViewCellDelegate {
+    @objc optional func collectionViewCellTouchesBegan(cell: ExcusesCircularCollectionViewCell, event: UIEvent)
+    @objc optional func collectionViewCellTouchesCancelled(cell: ExcusesCircularCollectionViewCell, event: UIEvent)
+    @objc optional func collectionViewCellTouchesEnded(cell: ExcusesCircularCollectionViewCell, event: UIEvent)
+}
+
 class ExcusesCircularCollectionViewCell: UICollectionViewCell {
         
     var themeLabel: UILabel = UILabel()
+    var clickedLocation = CGPoint()
+    var path : UIBezierPath!
+    var cellMask : CAShapeLayer!
+    
+    internal var delegate: CollectionViewCellDelegate?
     
     override init(frame: CGRect) {
         super.init(frame: .zero)
@@ -18,12 +29,6 @@ class ExcusesCircularCollectionViewCell: UICollectionViewCell {
     
     required init(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)!
-//        contentView.layer.cornerRadius = 5
-//        contentView.layer.borderColor = UIColor.black.cgColor
-//        contentView.layer.borderWidth = 1
-//        contentView.layer.shouldRasterize = true
-//        contentView.layer.rasterizationScale = UIScreen.main.scale
-//        contentView.clipsToBounds = true        
     }
 
     override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
@@ -45,5 +50,39 @@ class ExcusesCircularCollectionViewCell: UICollectionViewCell {
         themeLabel.translatesAutoresizingMaskIntoConstraints = false
         themeLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         themeLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -25).isActive = true
+    }
+    
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        path = createTriangleBezierPath(view: self)
+        cellMask = CAShapeLayer();
+        cellMask.frame = self.bounds
+        cellMask.path = path.cgPath
+        self.layer.mask = cellMask
+    }
+    
+    func createTriangleBezierPath(view: UIView) -> UIBezierPath {
+        let center = CGPoint(x: view.bounds.width/2.0, y: view.bounds.height)
+        let radius: CGFloat = view.bounds.height
+        
+        let halfWidth = view.frame.size.width / 2.0
+        let height = view.frame.size.height
+        let angle = atan(height/halfWidth)
+        let startAngle = 3 * CGFloat(Double.pi) / 2.0 + angle
+        let endAngle = 3 * CGFloat(Double.pi) / 2.0 - angle
+        
+        let magicY = CGFloat(10)
+        
+        let path = UIBezierPath()
+        path.move(to: CGPoint(x:0, y:magicY))
+        path.addLine(to: center)
+        path.addLine(to: CGPoint(x: view.bounds.width, y: magicY))
+        
+        path.addArc(withCenter: center,
+                    radius: radius,
+                    startAngle: startAngle,
+                    endAngle: endAngle,
+                    clockwise: false)
+        return path
     }
 }

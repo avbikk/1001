@@ -9,11 +9,13 @@
 import UIKit
 import CoreGraphics
 
+/// Радиус окружности
 let circleRadius: CGFloat = 100
 
+/// Атрибуты для layout
 class ExcusesCircularCollectionViewLayoutAttributes: UICollectionViewLayoutAttributes {
     
-    var anchorPoint = CGPoint(x: 0.5, y: 0.5)
+    var anchorPoint = CGPoint(x: 0, y: 0)
     var angle: CGFloat = 0 {
         didSet {
             zIndex = Int(angle * 1000000)
@@ -30,26 +32,32 @@ class ExcusesCircularCollectionViewLayoutAttributes: UICollectionViewLayoutAttri
 }
 
 
+/// Класс для laouyt коллекции - окружность с секторами
 class ExcusesCircularCollectionViewLayout: UICollectionViewLayout {
-    
+
+    /// Список параметров
     var attributesList = [ExcusesCircularCollectionViewLayoutAttributes]()
+    /// Размеры одной ячейки коллекции
     let itemSize = CGSize(width: 100, height: circleRadius*2)
     
+    /// Угол, на который надо повернуть коллекцию
     var angleAtExtreme: CGFloat {
-        return collectionView!.numberOfItems(inSection: 0) > 0 ?
-            -CGFloat(collectionView!.numberOfItems(inSection: 0) - 1) * anglePerItem : 0
+        return collectionView!.numberOfItems(inSection: 0) > 0 ? -CGFloat(collectionView!.numberOfItems(inSection: 0) - 1) * anglePerItem : 0
     }
-    
+
+    /// Угол поворота ячейки
     var angle: CGFloat {
         return angleAtExtreme * collectionView!.contentOffset.x / (collectionViewContentSize.width - (collectionView!.bounds).width)
     }
     
+    /// Радиус окружности
     var radius: CGFloat = circleRadius {
         didSet {
             invalidateLayout()
         }
     }
 
+    /// Угол сектора для каждой ячейки
     var anglePerItem: CGFloat {
         return asin(itemSize.width/(2*radius))
     }
@@ -85,24 +93,13 @@ class ExcusesCircularCollectionViewLayout: UICollectionViewLayout {
             endIndex = 0
             startIndex = 0
         }
-        
-        //    attributesList = (0..<collectionView!.numberOfItems(inSection: 0)).map {
-        //      (i) -> CircularCollectionViewLayoutAttributes in
-        
+                
         attributesList = (startIndex...endIndex).map {
             (i) -> ExcusesCircularCollectionViewLayoutAttributes in
-            
-            
-            //1
             let attributes = ExcusesCircularCollectionViewLayoutAttributes.init(forCellWith: IndexPath(item: i, section: 0))
             attributes.size = self.itemSize
-            
-            //2
             attributes.center = CGPoint(x: centerX, y: (self.collectionView!.bounds).midY)
-            
-            //3
             attributes.angle = self.angle + (self.anglePerItem * CGFloat(i))
-            
             attributes.anchorPoint = CGPoint(x: 0.5, y: anchorPointY)
             
             return attributes
@@ -110,14 +107,13 @@ class ExcusesCircularCollectionViewLayout: UICollectionViewLayout {
     }
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        // return an array layout attributes instances for all the views in the given rect
         return attributesList
     }
-    
+
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         return attributesList[indexPath.row]
     }
-    
+
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
         return true
     }

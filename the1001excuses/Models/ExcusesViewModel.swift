@@ -8,6 +8,7 @@
 
 import UIKit
 
+/// Модели данных для ячеек
 class ExcusesViewModel {
     
     let themeTitle: String
